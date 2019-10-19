@@ -334,7 +334,7 @@ DAT.Globe = function(container, colorFn) {
     // rotation.x += (target.x - rotation.x) * 0.1;
     // rotation.y += (target.y - rotation.y) * 0.1;
 
-    camera.rotation.z +=  0.0005;
+    camera.rotation.z += 0.01;
 
     distance += (distanceTarget - distance) * 0.3;
 
