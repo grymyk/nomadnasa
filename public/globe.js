@@ -20,7 +20,7 @@ DAT.Globe = function(container, colorFn) {
   colorFn = colorFn || function(x) {
     var c = new THREE.Color();
     c.setHSL( ( 0.6 - ( x * 0.5 ) ), 1.0, 0.5 );
-    console.log(c.getHex());
+    //console.log(c.getHex());
     return c;
   };
 
@@ -173,7 +173,7 @@ DAT.Globe = function(container, colorFn) {
     var lat, lng, size, color, i, step, colorFnWrapper;
 
     opts.format = opts.format || 'magnitude'; // other option is 'legend'
-    console.log(opts.format);
+    //console.log(opts.format);
 
     if (opts.format === 'magnitude') {
       step = 3;
@@ -210,8 +210,8 @@ DAT.Globe = function(container, colorFn) {
       max_size = Math.max(max_size, size);
     }
 
-    console.log(min_size);
-    console.log(max_size);
+    //console.log(min_size);
+    //console.log(max_size);
 
     this._baseGeometry = subgeo;
   };
@@ -229,12 +229,12 @@ DAT.Globe = function(container, colorFn) {
   }
   
   function addNoMad(data, opts) {
-    console.log('addNoMad');
+    //console.log('addNoMad');
 
     var colorFnWrapper = null;
 
     opts.format = opts.format || 'magnitude'; // other option is 'legend'
-    console.log(opts.format);
+    //console.log(opts.format);
 
     if (opts.format === 'magnitude') {
       step = 3;
@@ -255,7 +255,7 @@ DAT.Globe = function(container, colorFn) {
     var size = data[i + 2];
     size = size * GLOBE_RADIUS;
 
-    console.log(color);
+    //console.log(color);
 
     addPoint(lat, lng, size, color, subgeo)
 
