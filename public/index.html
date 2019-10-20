@@ -105,14 +105,14 @@
 
 <div id="container"></div>
 
-<div id="info">
+<!--<div id="info">
   The <a href="http://www.chromeexperiments.com/globe">WebGL Globe</a> is an
   open platform for visualizing geographic data. <span
     class="bull">&bull;</span> <a href="https://github.com/dataarts/webgl-globe">Get
   the code</a> <span class="bull">&bull;</span> By the Google Data Arts Team</a>
-</div>
+</div>-->
 
-<div id="title">
+<!--<div id="title">
   Orbital Objects
 </div>
 
@@ -121,8 +121,7 @@
   Points marked in <span class="gray">gray</span> are inactive satellites that are still intact.
   Points marked as <span class="red">red</span> are tracked pieces of space debris.<br /><br />
   Up and down arrows zoom in and out. Use the mouse to rotate.<br /><br />
-  Source data provided by <a href="http://www.agi.com/">Analytical Graphics, Inc.</a>, obtained November 29th, 2013.<br/><br/>
-  Read <a href="https://www.alexras.info/about-orbital-objects/">this blog post</a> for more information on how this visualization was built.</div>
+  Source data provided by <a href="http://www.agi.com/">Analytical Graphics, Inc.</a>, obtained November 29th, 2013.-->
 
 <script type="text/javascript" src="third-party/Detector.js"></script>
 <script type="text/javascript" src="third-party/three.min.js"></script>
@@ -141,7 +140,7 @@
 
         globe.addData(data, {format: 'legend'});
         globe.createPoints();
-        // globe.addNoMad();
+        globe.addNoMad(data, {format: 'legend'});
         globe.animate();
 
         document.body.style.backgroundImage = 'none'; // remove loading

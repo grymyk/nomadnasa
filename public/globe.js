@@ -71,6 +71,7 @@ DAT.Globe = function(container, colorFn) {
 
   var camera, scene, renderer, w, h;
   var mesh, atmosphere, point;
+  var moon;
 
   var overRenderer;
 
@@ -87,6 +88,11 @@ DAT.Globe = function(container, colorFn) {
   var distance = 100000, distanceTarget = 100000;
   var padding = 40;
   var PI_HALF = Math.PI / 2;
+
+  //Set the moon's orbital radius, start angle, and angle increment value
+  var r = 35;
+  var theta = 0;
+  var dTheta = 2 * Math.PI / 1000;
 
   function init() {
 
@@ -106,26 +112,20 @@ DAT.Globe = function(container, colorFn) {
 
     shader = Shaders['earth'];
     uniforms = THREE.UniformsUtils.clone(shader.uniforms);
-
     uniforms['texture'].value = THREE.ImageUtils.loadTexture(imgDir+'world.jpg');
-
     material = new THREE.ShaderMaterial({
-
       uniforms: uniforms,
       vertexShader: shader.vertexShader,
       fragmentShader: shader.fragmentShader
 
     });
-
     mesh = new THREE.Mesh(geometry, material);
     mesh.rotation.y = Math.PI;
     scene.add(mesh);
 
     shader = Shaders['atmosphere'];
     uniforms = THREE.UniformsUtils.clone(shader.uniforms);
-
     material = new THREE.ShaderMaterial({
-
       uniforms: uniforms,
       vertexShader: shader.vertexShader,
       fragmentShader: shader.fragmentShader,
@@ -134,12 +134,12 @@ DAT.Globe = function(container, colorFn) {
       transparent: true
 
     });
-
     mesh = new THREE.Mesh(geometry, material);
     mesh.scale.set( 1.1, 1.1, 1.1 );
     scene.add(mesh);
 
     geometry = new THREE.CubeGeometry(0.75, 0.75, 1);
+    // geometry = new THREE.SphereGeometry(5, 5, 5);
     geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0,0,-0.5));
 
     point = new THREE.Mesh(geometry);
@@ -174,6 +174,7 @@ DAT.Globe = function(container, colorFn) {
 
     opts.format = opts.format || 'magnitude'; // other option is 'legend'
     console.log(opts.format);
+
     if (opts.format === 'magnitude') {
       step = 3;
       colorFnWrapper = function(data, i) { return colorFn(data[i+2]); }
@@ -189,12 +190,20 @@ DAT.Globe = function(container, colorFn) {
     var min_size = 10000000000;
     var max_size = 0;
 
-    for (i = 0; i < data.length; i += step) {
+    //console.log(data.length)
+
+    // var len = 10;
+    var len = data.length;
+
+    for (i = 0; i < len; i += step) {
       lat = data[i];
       lng = data[i + 1];
       color = colorFnWrapper(data,i);
       size = data[i + 2];
       size = size * GLOBE_RADIUS;
+
+      //console.log(color);
+
       addPoint(lat, lng, size, color, subgeo);
 
       min_size = Math.min(min_size, size);
@@ -218,6 +227,39 @@ DAT.Globe = function(container, colorFn) {
       scene.add(this.points);
     }
   }
+  
+  function addNoMad(data, opts) {
+    console.log('addNoMad');
+
+    var colorFnWrapper = null;
+
+    opts.format = opts.format || 'magnitude'; // other option is 'legend'
+    console.log(opts.format);
+
+    if (opts.format === 'magnitude') {
+      step = 3;
+      colorFnWrapper = function(data, i) { return colorFn(data[i+2]); }
+    } else if (opts.format === 'legend') {
+      step = 4;
+      colorFnWrapper = function(data, i) { return colorFn(data[i+3]); }
+    } else {
+      throw('error: format not supported: '+opts.format);
+    }
+
+    var subgeo = new THREE.Geometry();
+    var i = 3;
+    var lat = data[i];
+    var lng = data[i + 1];
+    // var color = colorFnWrapper(data,i);
+    var color = new THREE.Color( 0x0000ff );
+    var size = data[i + 2];
+    size = size * GLOBE_RADIUS;
+
+    console.log(color);
+
+    addPoint(lat, lng, size, color, subgeo)
+
+  }
 
   function addPoint(lat, lng, size, color, subgeo) {
 
@@ -235,9 +277,7 @@ DAT.Globe = function(container, colorFn) {
     point.updateMatrix();
 
     for (var i = 0; i < point.geometry.faces.length; i++) {
-
       point.geometry.faces[i].color = color;
-
     }
 
     THREE.GeometryUtils.merge(subgeo, point);
@@ -327,11 +367,17 @@ DAT.Globe = function(container, colorFn) {
   function render() {
     zoom(curZoomSpeed);
 
-    // rotation.x += (target.x - rotation.x) * 0.1;
-    // rotation.y += (target.y - rotation.y) * 0.1;
+    //Increment theta, and update moon x and y
+    //position based off new theta value
+    // theta += dTheta;
+    // moon.position.x = r * Math.cos(theta);
+    // moon.position.z = r * Math.sin(theta);
+
+    rotation.x += (target.x - rotation.x) * 0.1;
+    rotation.y += (target.y - rotation.y) * 0.1;
     //
-    rotation.x += 0.001;
-    rotation.y += 0.001;
+    /*rotation.x += 0.001;
+    rotation.y += 0.001;*/
 
     distance += (distanceTarget - distance) * 0.3;
 
@@ -379,6 +425,7 @@ DAT.Globe = function(container, colorFn) {
 
   this.addData = addData;
   this.createPoints = createPoints;
+  this.addNoMad = addNoMad;
   this.renderer = renderer;
   this.scene = scene;
 
