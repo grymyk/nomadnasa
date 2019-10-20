@@ -373,11 +373,11 @@ DAT.Globe = function(container, colorFn) {
     // moon.position.x = r * Math.cos(theta);
     // moon.position.z = r * Math.sin(theta);
 
-    rotation.x += (target.x - rotation.x) * 0.1;
-    rotation.y += (target.y - rotation.y) * 0.1;
-    //
-    /*rotation.x += 0.001;
-    rotation.y += 0.001;*/
+    //rotation.x += (target.x - rotation.x) * 0.1;
+    // rotation.y += (target.y - rotation.y) * 0.1;
+    
+    rotation.x += 0.001;
+    // rotation.y += 0.001;
 
     distance += (distanceTarget - distance) * 0.3;
 
