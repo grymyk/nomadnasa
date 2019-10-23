@@ -20,7 +20,6 @@ DAT.Globe = function(container, colorFn) {
   colorFn = colorFn || function(x) {
     var c = new THREE.Color();
     c.setHSL( ( 0.6 - ( x * 0.5 ) ), 1.0, 0.5 );
-    //console.log(c.getHex());
     return c;
   };
 
@@ -70,7 +69,7 @@ DAT.Globe = function(container, colorFn) {
   };
 
   var camera, scene, renderer, w, h;
-  var mesh, atmosphere, point;
+  var mesh, atmosphere, point, sphere;
   var moon;
 
   var overRenderer;
@@ -95,7 +94,6 @@ DAT.Globe = function(container, colorFn) {
   var dTheta = 2 * Math.PI / 1000;
 
   function init() {
-
     container.style.color = '#fff';
     container.style.font = '13px/20px Arial, sans-serif';
 
@@ -110,6 +108,7 @@ DAT.Globe = function(container, colorFn) {
 
     var geometry = new THREE.SphereGeometry(GLOBE_RADIUS, 40, 30);
 
+    //Earth
     shader = Shaders['earth'];
     uniforms = THREE.UniformsUtils.clone(shader.uniforms);
     uniforms['texture'].value = THREE.ImageUtils.loadTexture(imgDir+'world.jpg');
@@ -123,6 +122,7 @@ DAT.Globe = function(container, colorFn) {
     mesh.rotation.y = Math.PI;
     scene.add(mesh);
 
+    // Atmosphere
     shader = Shaders['atmosphere'];
     uniforms = THREE.UniformsUtils.clone(shader.uniforms);
     material = new THREE.ShaderMaterial({
@@ -138,12 +138,19 @@ DAT.Globe = function(container, colorFn) {
     mesh.scale.set( 1.1, 1.1, 1.1 );
     scene.add(mesh);
 
+    // Point
     geometry = new THREE.CubeGeometry(0.75, 0.75, 1);
     // geometry = new THREE.SphereGeometry(5, 5, 5);
     geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0,0,-0.5));
 
     point = new THREE.Mesh(geometry);
 //    point = new THREE.ParticleSystem(geometry);
+
+    // Sphere
+    var geometry = new THREE.SphereGeometry(10, 20, 15);
+    // geometry = new THREE.CubeGeometry(10.75, 10.75, 1);
+    geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0,0,-0.5));
+    sphere = new THREE.Mesh(geometry);
 
     renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.setSize(w, h);
@@ -171,6 +178,10 @@ DAT.Globe = function(container, colorFn) {
 
   addData = function(data, opts) {
     var lat, lng, size, color, i, step, colorFnWrapper;
+    // console.log(data);
+    // console.log(data[0]);
+    // console.log(data[1]);
+    // console.log(data[2]);
 
     opts.format = opts.format || 'magnitude'; // other option is 'legend'
     //console.log(opts.format);
@@ -192,8 +203,9 @@ DAT.Globe = function(container, colorFn) {
 
     //console.log(data.length)
 
-    // var len = 10;
+    // var len = 20;
     var len = data.length;
+    // console.log(step);
 
     for (i = 0; i < len; i += step) {
       lat = data[i];
@@ -201,8 +213,6 @@ DAT.Globe = function(container, colorFn) {
       color = colorFnWrapper(data,i);
       size = data[i + 2];
       size = size * GLOBE_RADIUS;
-
-      //console.log(color);
 
       addPoint(lat, lng, size, color, subgeo);
 
@@ -218,50 +228,89 @@ DAT.Globe = function(container, colorFn) {
 
   function createPoints() {
     if (this._baseGeometry !== undefined) {
-      this.points = new THREE.Mesh(this._baseGeometry, new THREE.MeshBasicMaterial({
-        color: 0xffffff,
-        vertexColors: THREE.FaceColors,
-        morphTargets: false
+      this.points = new THREE.Mesh(this._baseGeometry,
+          new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            vertexColors: THREE.FaceColors,
+            morphTargets: false
       }));
 
       scene.add(this.points);
     }
   }
-  
-  function addNoMad(data, opts) {
-    //console.log('addNoMad');
 
-    var colorFnWrapper = null;
+  function createSphere() {
+    if (this._baseGeometry !== undefined) {
+      this.sphere = new THREE.Mesh(this._baseGeometry,
+          new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            vertexColors: THREE.FaceColors,
+            morphTargets: false
+      }));
 
-    opts.format = opts.format || 'magnitude'; // other option is 'legend'
-    //console.log(opts.format);
-
-    if (opts.format === 'magnitude') {
-      step = 3;
-      colorFnWrapper = function(data, i) { return colorFn(data[i+2]); }
-    } else if (opts.format === 'legend') {
-      step = 4;
-      colorFnWrapper = function(data, i) { return colorFn(data[i+3]); }
-    } else {
-      throw('error: format not supported: '+opts.format);
+      scene.add(this.sphere);
     }
+  }
+
+  function addNoMad(data) {
+    // console.log('addNoMad');
+
+    var lat, lng, size, color;
 
     var subgeo = new THREE.Geometry();
-    var i = 3;
-    var lat = data[i];
-    var lng = data[i + 1];
-    // var color = colorFnWrapper(data,i);
-    var color = new THREE.Color( 0x0000ff );
-    var size = data[i + 2];
+
+    var min_size = 10000000000;
+    var max_size = 0;
+
+    //console.log(data.length)
+
+    var index = 0;
+
+    lat = data[index];
+    lng = data[index + 1];
+    color = new THREE.Color(0x0000ff);
+    size = data[index + 2];
     size = size * GLOBE_RADIUS;
 
-    //console.log(color);
+    addSphere(lat, lng, size, color, subgeo);
+    // addPoint(lat, lng, size, color, subgeo);
 
-    addPoint(lat, lng, size, color, subgeo)
+    min_size = Math.min(min_size, size);
+    max_size = Math.max(max_size, size);
 
+    this._baseGeometry = subgeo;
+  }
+
+  function addSphere(lat, lng, size, color, subgeo) {
+    /*console.log(sphere);
+    console.log(lat, lng, size, color);*/
+
+    var delta = 3;
+
+    var phi = (90 - lat - delta) * Math.PI / 180;
+    var theta = (180 - lng) * Math.PI / 180;
+    var r = ((1 + (size / 100.0)) * GLOBE_RADIUS);
+
+    sphere.position.x = r * Math.sin(phi) * Math.cos(theta);
+    sphere.position.y = r * Math.cos(phi);
+    sphere.position.z = r * Math.sin(phi) * Math.sin(theta);
+
+    point.lookAt(mesh.position);
+
+//    point.scale.z = Math.max( size, 0.1 );
+    sphere.updateMatrix();
+
+    var facesLen = sphere.geometry.faces.length;
+
+    for (var i = 0; i < facesLen; i++) {
+      sphere.geometry.faces[i].color = color;
+    }
+
+    THREE.GeometryUtils.merge(subgeo, sphere);
   }
 
   function addPoint(lat, lng, size, color, subgeo) {
+    // console.log('addPoint');
 
     var phi = (90 - lat) * Math.PI / 180;
     var theta = (180 - lng) * Math.PI / 180;
@@ -276,7 +325,9 @@ DAT.Globe = function(container, colorFn) {
 //    point.scale.z = Math.max( size, 0.1 );
     point.updateMatrix();
 
-    for (var i = 0; i < point.geometry.faces.length; i++) {
+    var facesLen = point.geometry.faces.length;
+
+    for (var i = 0; i < facesLen; i++) {
       point.geometry.faces[i].color = color;
     }
 
@@ -367,17 +418,11 @@ DAT.Globe = function(container, colorFn) {
   function render() {
     zoom(curZoomSpeed);
 
-    //Increment theta, and update moon x and y
-    //position based off new theta value
-    // theta += dTheta;
-    // moon.position.x = r * Math.cos(theta);
-    // moon.position.z = r * Math.sin(theta);
-
     //rotation.x += (target.x - rotation.x) * 0.1;
     // rotation.y += (target.y - rotation.y) * 0.1;
-    
+
     rotation.x += 0.001;
-    // rotation.y += 0.001;
+    //rotation.y += 0.00001;
 
     distance += (distanceTarget - distance) * 0.3;
 
@@ -392,8 +437,7 @@ DAT.Globe = function(container, colorFn) {
 
   init();
   this.animate = animate;
-  animate()
-
+  animate();
 
   this.__defineGetter__('time', function() {
     return this._time || 0;
@@ -426,6 +470,7 @@ DAT.Globe = function(container, colorFn) {
   this.addData = addData;
   this.createPoints = createPoints;
   this.addNoMad = addNoMad;
+  this.createSphere = createSphere;
   this.renderer = renderer;
   this.scene = scene;
 

@@ -133,6 +133,7 @@
 
   xhr = new XMLHttpRequest();
   xhr.open('GET', 'space_junk.json', true);
+
   xhr.onreadystatechange = function(e) {
     if (xhr.readyState === 4) {
       if (xhr.status === 200) {
@@ -140,7 +141,10 @@
 
         globe.addData(data, {format: 'legend'});
         globe.createPoints();
-        globe.addNoMad(data, {format: 'legend'});
+
+        globe.addNoMad(data);
+        globe.createSphere();
+
         globe.animate();
 
         document.body.style.backgroundImage = 'none'; // remove loading
