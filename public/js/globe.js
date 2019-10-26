@@ -16,7 +16,6 @@ var DAT = DAT || {};
 var GLOBE_RADIUS = 75;
 
 DAT.Globe = function(container, colorFn) {
-
   colorFn = colorFn || function(x) {
     var c = new THREE.Color();
     c.setHSL( ( 0.6 - ( x * 0.5 ) ), 1.0, 0.5 );
@@ -178,13 +177,8 @@ DAT.Globe = function(container, colorFn) {
 
   addData = function(data, opts) {
     var lat, lng, size, color, i, step, colorFnWrapper;
-    // console.log(data);
-    // console.log(data[0]);
-    // console.log(data[1]);
-    // console.log(data[2]);
 
-    opts.format = opts.format || 'magnitude'; // other option is 'legend'
-    //console.log(opts.format);
+    opts.format = opts.format || 'magnitude';
 
     if (opts.format === 'magnitude') {
       step = 3;
@@ -201,11 +195,7 @@ DAT.Globe = function(container, colorFn) {
     var min_size = 10000000000;
     var max_size = 0;
 
-    //console.log(data.length)
-
-    // var len = 20;
     var len = data.length;
-    // console.log(step);
 
     for (i = 0; i < len; i += step) {
       lat = data[i];
@@ -219,9 +209,6 @@ DAT.Globe = function(container, colorFn) {
       min_size = Math.min(min_size, size);
       max_size = Math.max(max_size, size);
     }
-
-    //console.log(min_size);
-    //console.log(max_size);
 
     this._baseGeometry = subgeo;
   };
@@ -253,16 +240,12 @@ DAT.Globe = function(container, colorFn) {
   }
 
   function addNoMad(data) {
-    // console.log('addNoMad');
-
     var lat, lng, size, color;
 
     var subgeo = new THREE.Geometry();
 
     var min_size = 10000000000;
     var max_size = 0;
-
-    //console.log(data.length)
 
     var index = 0;
 
@@ -273,7 +256,6 @@ DAT.Globe = function(container, colorFn) {
     size = size * GLOBE_RADIUS;
 
     addSphere(lat, lng, size, color, subgeo);
-    // addPoint(lat, lng, size, color, subgeo);
 
     min_size = Math.min(min_size, size);
     max_size = Math.max(max_size, size);
@@ -282,9 +264,6 @@ DAT.Globe = function(container, colorFn) {
   }
 
   function addSphere(lat, lng, size, color, subgeo) {
-    /*console.log(sphere);
-    console.log(lat, lng, size, color);*/
-
     var delta = 3;
 
     var phi = (90 - lat - delta) * Math.PI / 180;
@@ -295,9 +274,7 @@ DAT.Globe = function(container, colorFn) {
     sphere.position.y = r * Math.cos(phi);
     sphere.position.z = r * Math.sin(phi) * Math.sin(theta);
 
-    point.lookAt(mesh.position);
-
-//    point.scale.z = Math.max( size, 0.1 );
+    sphere.lookAt(mesh.position);
     sphere.updateMatrix();
 
     var facesLen = sphere.geometry.faces.length;
@@ -310,8 +287,6 @@ DAT.Globe = function(container, colorFn) {
   }
 
   function addPoint(lat, lng, size, color, subgeo) {
-    // console.log('addPoint');
-
     var phi = (90 - lat) * Math.PI / 180;
     var theta = (180 - lng) * Math.PI / 180;
     var r = ((1 + (size / 100.0)) * GLOBE_RADIUS);
@@ -321,8 +296,6 @@ DAT.Globe = function(container, colorFn) {
     point.position.z = r * Math.sin(phi) * Math.sin(theta);
 
     point.lookAt(mesh.position);
-
-//    point.scale.z = Math.max( size, 0.1 );
     point.updateMatrix();
 
     var facesLen = point.geometry.faces.length;
@@ -385,19 +358,37 @@ DAT.Globe = function(container, colorFn) {
   }
 
   function onDocumentKeyDown(event) {
-    switch (event.keyCode) {
-      case 38:
-        zoom(100);
-        event.preventDefault();
-        break;
-      case 40:
-        zoom(-100);
-        event.preventDefault();
-        break;
-    }
+      switch(event.code) {
+          case "KeyS":
+          case "ArrowDown":
+            zoom(-100);
+            event.preventDefault();
+          break;
+
+          case "KeyW":
+          case "ArrowUp":
+              //zoom(100
+
+            sphere.position.x += 100;
+            sphere.updateMatrix();
+
+            event.preventDefault();
+          break;
+
+          case "KeyA":
+          case "ArrowLeft":
+              // Handle "turn left"
+          break;
+
+          case "KeyD":
+          case "ArrowRight":
+              // Handle "turn right"
+
+          break;
+      }
   }
 
-  function onWindowResize( event ) {
+  function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize( window.innerWidth, window.innerHeight );
@@ -418,11 +409,7 @@ DAT.Globe = function(container, colorFn) {
   function render() {
     zoom(curZoomSpeed);
 
-    //rotation.x += (target.x - rotation.x) * 0.1;
-    // rotation.y += (target.y - rotation.y) * 0.1;
-
     rotation.x += 0.001;
-    //rotation.y += 0.00001;
 
     distance += (distanceTarget - distance) * 0.3;
 
